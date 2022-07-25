@@ -55,7 +55,7 @@ use Guandeng\Tracer\Listeners\RpcListener;
 
 $subscriber = new RpcListener();
 // $name 定义的Span名称, $request  
-$subscriber->onJobProcessing($name, $request);// 监听开始
+$subscriber->onJobProcessing($request);// 监听开始
 
 // your code
 
@@ -66,5 +66,6 @@ $subscriber->onJobProcessed();// 监听结束
 #### zipkin
 安装
 > docker run -d --restart always -p 9411:9411 --name zipkin openzipkin/zipkin
+
 访问
 > http://localhost:9411/
