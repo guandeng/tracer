@@ -10,7 +10,7 @@
 在app/Http/Kernel.php下$middleware加入下面代码
 >  \Guandeng\Tracer\Middleware\TraceMiddleware::class
 
-配置config/opentracing
+配置config/opentracing.php
 ```
 <?php
 
@@ -20,9 +20,6 @@ use Zipkin\Samplers\BinarySampler;
 
 return [
     'default' => env('TRACER_DRIVER', 'zipkin'),
-    'enable' => [
-        'guzzle' => env('TRACER_ENABLE_GUZZLE', false),
-    ],
     'middleware' => [
         'excluded_paths' => env('TRACER_EXCLUDED_PATHS', ''), // 路径黑名单
         'included_paths' => env('TRACER_INCLUDED_PATHS', null), // 路径白名单
@@ -40,7 +37,6 @@ return [
                 'endpoint_url' => env('ZIPKIN_ENDPOINT_URL', 'http://localhost:9411/api/v2/spans'),
                 'timeout' => env('ZIPKIN_TIMEOUT', 1),
             ],
-            'sampler' => env('TRACER_SAMPLE', 1) ? BinarySampler::createAsAlwaysSample() : BinarySampler::createAsNeverSample(),
             'rate' => 100 // 采样率 0-100% 设置后sampler的值无效
         ]
     ]
