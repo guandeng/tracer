@@ -1,0 +1,6 @@
+/vendor/
+/tests/config.php
+composer.lock
+*.bak
+/phpunit.xml
+/.phpunit.result.cache
