@@ -37,7 +37,7 @@ return [
                 'endpoint_url' => env('ZIPKIN_ENDPOINT_URL', 'http://localhost:9411/api/v2/spans'),
                 'timeout' => env('ZIPKIN_TIMEOUT', 1),
             ],
-            'rate' => 100 // 采样率 0-100% 设置后sampler的值无效
+            'rate' => 100 // 采样率 0-100%
         ]
     ]
 ];
