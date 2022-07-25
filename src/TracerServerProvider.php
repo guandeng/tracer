@@ -16,7 +16,7 @@ class TracerServerProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(dirname(__DIR__) . '/config/opentracing.php', 'opentracing');
-        
+
         $this->app->singleton('tracer', function ($app) {
             return new TracerManager($app);
         });

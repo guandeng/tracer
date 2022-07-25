@@ -29,12 +29,12 @@ class TraceMiddleware
 
     public function handle($request, Closure $next)
     {
-        // if ($this->shouldBeExcluded($request->path())) {
-        //     return $next($request);
-        // }
-        // if (! $this->shouldBeIncluded($request->path())) {
-        //     return $next($request);
-        // }
+        if ($this->shouldBeExcluded($request->path())) {
+            return $next($request);
+        }
+        if (! $this->shouldBeIncluded($request->path())) {
+            return $next($request);
+        }
         $this->tracer = resolve('tracer')->make();
         $this->spanTagManager = new SpanTagManager();
 
