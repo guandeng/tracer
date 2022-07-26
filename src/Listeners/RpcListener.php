@@ -6,14 +6,11 @@ namespace Guandeng\Tracer\Listeners;
 
 use Guandeng\Tracer\SpanStarter;
 use Guandeng\Tracer\SpanTagManager;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Http\Request;
 
 use const OpenTracing\Formats\TEXT_MAP;
 
 class RpcListener extends Context
 {
-    use Dispatchable;
     use SpanStarter;
 
     public function __construct()
@@ -33,7 +30,7 @@ class RpcListener extends Context
         $headers = [];
         $this->tracer->inject($span->getContext(), TEXT_MAP, $headers);
         foreach ($headers as $header => $value) {
-            \Request::header($header,$value);
+            \Request::header($header, $value);
         }
         $span->setTag($this->spanTagManager->get('rpc', 'path'), $path);
         static::$tracers = $this->tracer;
@@ -47,5 +44,23 @@ class RpcListener extends Context
         $span->setTag($this->spanTagManager->get('rpc', 'status'), $result ? 'OK' : 'Failed');
         $span->finish();
         $tracers->flush();
+    }
+
+    public function onJobProcessException(\Throwable $exception)
+    {
+        $tracers = static::$tracers;
+        $span = static::$span;
+        $this->appendExceptionToSpan($span, $exception);
+        $span->finish();
+        $tracers->flush();
+    }
+
+    protected function appendExceptionToSpan($span, \Throwable $exception): void
+    {
+        $span->setTag('exception', true);
+        $span->setTag($this->spanTagManager->get('exception', 'class'), get_class($exception));
+        $span->setTag($this->spanTagManager->get('exception', 'code'), $exception->getCode());
+        $span->setTag($this->spanTagManager->get('exception', 'message'), $exception->getMessage());
+        $span->setTag($this->spanTagManager->get('exception', 'stack_trace'), (string) $exception);
     }
 }
