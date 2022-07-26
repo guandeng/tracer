@@ -18,17 +18,13 @@ trait SpanStarter
 
     protected function startSpan(
         $name,
-        $request  = null,
         array $option = [],
         string $kind = SPAN_KIND_RPC_SERVER
     ) {
         $name = $this->formatHttpPath($name);
-        if($request){
-            $this->request = $request;
-        }
         $carrier = array_map(function ($header) {
             return $header[0];
-        }, $this->request->headers->all());
+        }, \Request::header());
         // Extracts the context from the HTTP headers.
         $spanContext = $this->tracer->extract(TEXT_MAP, $carrier);
         if ($spanContext) {

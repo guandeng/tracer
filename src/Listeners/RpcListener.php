@@ -21,19 +21,19 @@ class RpcListener extends Context
         $this->spanTagManager = new spanTagManager();
     }
 
-    public function onJobProcessing(Request $request, $path = null)
+    public function onJobProcessing($path = null)
     {
         if ($path == null) {
-            $path = $request->getPathInfo();
+            $path = \Request::path();
         }
         $name = config('opentracing.default');
         $this->tracer = resolve('tracer')->make($name);
         $key = "JsonRPC send [{$path}]";
-        $span = $this->startSpan($key, $request);
+        $span = $this->startSpan($key);
         $headers = [];
         $this->tracer->inject($span->getContext(), TEXT_MAP, $headers);
         foreach ($headers as $header => $value) {
-            $this->request->headers->set($header, $value);
+            \Request::header($header,$value);
         }
         $span->setTag($this->spanTagManager->get('rpc', 'path'), $path);
         static::$tracers = $this->tracer;

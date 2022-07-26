@@ -29,16 +29,16 @@ class TraceMiddleware
 
     public function handle($request, Closure $next)
     {
-        if ($this->shouldBeExcluded($request->path())) {
-            return $next($request);
-        }
-        if (! $this->shouldBeIncluded($request->path())) {
-            return $next($request);
-        }
+        // if ($this->shouldBeExcluded($request->path())) {
+        //     return $next($request);
+        // }
+        // if (! $this->shouldBeIncluded($request->path())) {
+        //     return $next($request);
+        // }
         $this->tracer = resolve('tracer')->make();
         $this->spanTagManager = new SpanTagManager();
 
-        $span = $this->buildSpan($request);
+        $span = $this->buildSpan();
 
         $response = null;
         try {
@@ -139,12 +139,12 @@ class TraceMiddleware
         $span->setTag($this->spanTagManager->get('exception', 'stack_trace'), (string) $exception);
     }
 
-    protected function buildSpan($request): Span
+    protected function buildSpan(): Span
     {
-        $path = $request->getPathInfo();
-        $span = $this->startSpan($path, $request);
-        $span->setTag($this->spanTagManager->get('request', 'method'), $request->getMethod());
-        foreach ($request->headers->all() as $key => $value) {
+        $path = \Request::path();
+        $span = $this->startSpan($path);
+        $span->setTag($this->spanTagManager->get('request', 'method'), \Request::method());
+        foreach (\Request::header() as $key => $value) {
             $span->setTag($this->spanTagManager->get('request', 'header') . '.' . $key, implode(', ', $value));
         }
         return $span;
