@@ -6,6 +6,7 @@ namespace Guandeng\Tracer\Listeners;
 
 use Guandeng\Tracer\SpanStarter;
 use Guandeng\Tracer\SpanTagManager;
+use Illuminate\Http\Request;
 
 use const OpenTracing\Formats\TEXT_MAP;
 
@@ -13,15 +14,18 @@ class RpcListener extends Context
 {
     use SpanStarter;
 
+    private $request;
+
     public function __construct()
     {
         $this->spanTagManager = new spanTagManager();
+        $this->request = app(Request::class);
     }
 
     public function onJobProcessing($path = null)
     {
         if ($path == null) {
-            $path = \Request::path();
+            $path = $this->request->getPathInfo();
         }
         $name = config('opentracing.default');
         $this->tracer = resolve('tracer')->make($name);
@@ -30,11 +34,12 @@ class RpcListener extends Context
         $headers = [];
         $this->tracer->inject($span->getContext(), TEXT_MAP, $headers);
         foreach ($headers as $header => $value) {
-            \Request::header($header, $value);
+            $this->request->headers->set($header, $value);
         }
         $span->setTag($this->spanTagManager->get('rpc', 'path'), $path);
         static::$tracers = $this->tracer;
         static::$span = $span;
+        return $headers;
     }
 
     public function onJobProcessed($result = true)

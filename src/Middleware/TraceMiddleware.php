@@ -27,8 +27,11 @@ class TraceMiddleware
 
     private $bodySize = 5000;
 
+    private $request;
+
     public function handle($request, Closure $next)
     {
+        $this->request = $request;
         if ($this->shouldBeExcluded($request->path())) {
             return $next($request);
         }
@@ -45,7 +48,7 @@ class TraceMiddleware
             $headers = [];
             $this->tracer->inject($span->getContext(), TEXT_MAP, $headers);
             foreach ($headers as $header => $value) {
-                $request->headers->set($header, $value);
+                $this->request->headers->set($header, $value);
             }
             $span->setTag(static::RUNTIME_MEMORY, round(memory_get_usage() / 1000000, 2) . 'MB');
             $response = $next($request);
@@ -141,10 +144,10 @@ class TraceMiddleware
 
     protected function buildSpan(): Span
     {
-        $path = \Request::path();
+        $path = $this->request->getPathInfo();
         $span = $this->startSpan($path);
-        $span->setTag($this->spanTagManager->get('request', 'method'), \Request::method());
-        foreach (\Request::header() as $key => $value) {
+        $span->setTag($this->spanTagManager->get('request', 'method'), $this->request->getMethod());
+        foreach ($this->request->header() as $key => $value) {
             $span->setTag($this->spanTagManager->get('request', 'header') . '.' . $key, implode(', ', $value));
         }
         return $span;
