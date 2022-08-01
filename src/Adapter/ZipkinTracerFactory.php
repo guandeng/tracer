@@ -37,7 +37,7 @@ class ZipkinTracerFactory implements NamedFactoryInterface
             $app['name'],
             (! $isIpV6) ? $ipv4 : null,
             $isIpV6 ? $ipv4 : null,
-            $port
+            intval($port)
         );
         $reporter = new Http($options, $this->clientFactory);
         $tracing = TracingBuilder::create()
