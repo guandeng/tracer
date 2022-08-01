@@ -1,13 +1,7 @@
 <?php
 
 declare(strict_types=1);
-/**
- * This file is part of hk8591/im.
- *
- * @link     https://code.addcn.com/hk8591/services/im
- * @document https://code.addcn.com/hk8591/services/blob/master/README.md
- * @contact  hdj@addcn.com
- */
+
 namespace Guandeng\Tracer\Adapter;
 
 use Zipkin\Endpoint;
@@ -36,7 +30,15 @@ class ZipkinTracerFactory implements NamedFactoryInterface
         [$app, $options, $sampler,$rate] = $this->parseConfig();
         // 设置随机率
         $sampler = $this->rateSampler($rate);
-        $endpoint = Endpoint::create($app['name'], $app['ipv4'], $app['ipv6'], $app['port']);
+        $ipv4 = $app['ipv4'] ?? \Illuminate\Support\Facades\Request::ip();
+        $isIpV6 = substr_count($ipv4, ':') > 1;
+        $port = $app['port'] ?? \Illuminate\Support\Facades\Request::instance()->server('REMOTE_PORT');
+        $endpoint = Endpoint::create(
+            $app['name'],
+            (! $isIpV6) ? $ipv4 : null,
+            $isIpV6 ? $ipv4 : null,
+            $port
+        );
         $reporter = new Http($options, $this->clientFactory);
         $tracing = TracingBuilder::create()
             ->havingLocalEndpoint($endpoint)
